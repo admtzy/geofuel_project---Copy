@@ -1,0 +1,8 @@
+﻿event_id,event_name,demand_multiplier,data_status,notes
+BASELINE,Kondisi normal,1.0,ASSUMPTION,Baseline simulasi
+DEMAND_LOW,Permintaan rendah,0.8,ASSUMPTION,Skenario permintaan rendah
+DEMAND_MEDIUM,Permintaan sedang,1.0,ASSUMPTION,Skenario permintaan sedang
+DEMAND_HIGH,Permintaan tinggi,1.25,ASSUMPTION,Skenario permintaan tinggi
+RAMADAN,Ramadan,1.12,ASSUMPTION,Pengali permintaan ilustratif; perlu kalibrasi data penjualan
+MUDIK,Puncak mudik,1.25,ASSUMPTION,Pengali permintaan ilustratif; bukan hasil pengukuran
+ARUS_BALIK,Puncak arus balik,1.19,ASSUMPTION,Pengali permintaan ilustratif; bukan hasil pengukuran

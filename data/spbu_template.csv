@@ -1,0 +1,2 @@
+station_id,name,address,lat,lon,capacity_liters,initial_stock_liters,stock_as_of,daily_demand_liters,demand_std_liters_per_day,mean_lead_time_days,lead_time_std_days,service_level_z,window_start,window_end,data_status
+SPBU001,NAMA_SPBU,ALAMAT_SPBU,-6.900000,107.700000,30000,10000,YYYY-MM-DD HH:MM,12000,,,,,7,20,UNVERIFIED

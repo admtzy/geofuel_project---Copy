@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GEO-FUEL — Spatial Decision Support</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--ink:#172033;--muted:#657089;--line:#e3e8f0;--paper:#f4f6fa;--white:#fff;--brand:#3448c5;--brand2:#25399f;--red:#d9485f;--orange:#d97706;--blue:#2563eb;--green:#16845b;--shadow:0 5px 18px #1720330d}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:13px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif;display:grid;grid-template-columns:310px minmax(0,1fr);height:100vh;overflow:hidden}
+aside{background:var(--white);border-right:1px solid var(--line);padding:16px;overflow:auto}h1{font-size:23px;letter-spacing:-.7px;margin:0;color:var(--brand)}h2{font-size:15px;margin:0 0 10px}h3{font-size:13px;margin:16px 0 7px}.sub{font-size:11px;color:var(--muted)}.section{border-top:1px solid var(--line);padding-top:12px;margin-top:13px}
+label{display:block;color:var(--muted);font-size:11px;margin:9px 0 4px}input,select,button{font:inherit;border-radius:8px}input,select{width:100%;border:1px solid #d5dcea;background:#fff;padding:8px;color:var(--ink)}input:focus,select:focus{outline:2px solid #3448c522;border-color:var(--brand)}button{border:0;padding:9px 11px;font-weight:650;cursor:pointer;background:var(--brand);color:white}button:hover{background:var(--brand2)}button:disabled{opacity:.55;cursor:wait}.secondary{background:#e9edff;color:var(--brand)}.secondary:hover{background:#dde4ff}.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.btnrow button{font-size:12px}.checkline{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--muted)}.checkline input{width:auto}.note{font-size:11px;color:var(--muted);background:#f5f7fb;padding:9px;border-radius:8px;margin-top:10px}.warning{border-left:3px solid var(--orange);padding:8px 10px;background:#fff8e8;color:#70450b;font-size:11px;margin:8px 0;border-radius:4px}
+main{min-width:0;height:100vh;display:grid;grid-template-rows:minmax(330px,55vh) auto minmax(220px,1fr);overflow:hidden}#map{height:100%;width:100%;background:#e7ebf0}.toolbar{background:#fff;border-block:1px solid var(--line);padding:8px 14px;display:grid;grid-template-columns:auto minmax(120px,1fr) 64px;gap:12px;align-items:center}.toolbar input{padding:0}.time-label{font-weight:700;font-variant-numeric:tabular-nums}.panel{overflow:auto;padding:12px 15px;background:#fff}.kpis{display:grid;grid-template-columns:repeat(6,minmax(110px,1fr));gap:8px;margin-bottom:12px}.kpi{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff;min-width:0}.kpi .v{font-size:17px;font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}.kpi .k{font-size:10px;color:var(--muted);margin-top:3px}.cols{display:grid;grid-template-columns:minmax(300px,1.1fr) minmax(280px,.9fr);gap:12px}.card{border:1px solid var(--line);border-radius:10px;padding:10px;overflow:auto;min-width:0}.card h3{margin:0 0 9px}.tablewrap{overflow:auto;max-width:100%}table{border-collapse:collapse;width:100%;font-size:11px;white-space:nowrap}th,td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:right}th{color:var(--muted);font-weight:650;background:#fafbfe;position:sticky;top:0}td:first-child,th:first-child{text-align:left}.tag{font-size:10px;padding:2px 7px;border-radius:99px;background:#edf1f7;color:#42506a}.critical{background:#fde8ec;color:#a3223b}.high{background:#ffedd5;color:#9a4b08}.medium{background:#e8f0ff;color:#1e4eaa}.safe{background:#e5f5ed;color:#116344}.sim{background:#fff1ce;color:#78520a}.routeitem{padding:8px;border:1px solid var(--line);border-radius:8px;margin:6px 0;font-size:11px}.routeitem strong{font-size:12px}.empty{color:var(--muted);padding:10px;background:#f7f8fb;border-radius:8px;font-size:11px}.small{font-size:10px;color:var(--muted)}#status{margin-top:8px;color:var(--muted);font-size:11px;min-height:18px}.legend{line-height:1.8;background:#fffffff0;padding:9px 11px;border-radius:8px;box-shadow:var(--shadow);font-size:11px}.legend i{width:9px;height:9px;display:inline-block;border-radius:50%;margin-right:5px}.editinput{width:76px;padding:4px 5px;text-align:right;font-size:11px}.foot{font-size:10px;color:var(--muted);margin-top:10px}
+@media(max-width:1000px){body{grid-template-columns:270px minmax(0,1fr)}.kpis{grid-template-columns:repeat(3,1fr)}.cols{grid-template-columns:1fr}}
+@media(max-width:700px){body{display:block;height:auto;overflow:auto}aside{height:auto;border-right:0;border-bottom:1px solid var(--line)}main{height:auto;overflow:visible;grid-template-rows:420px auto auto}.panel{overflow:visible}.toolbar{position:sticky;top:0;z-index:500}.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<aside>
+  <h1>GEO-FUEL</h1>
+  <div class="sub">Geospatial decision support untuk distribusi BBM</div>
+  <div class="warning"><b>Mode prototipe.</b> Data contoh diberi label SIMULATED. Koordinat terminal, SPBU, stok, konsumsi, armada, dan biaya harus diverifikasi sebelum dipakai sebagai hasil penelitian aktual.</div>
+
+  <h3>Konfigurasi simulasi</h3>
+  <label>Metode keputusan</label>
+  <select id="method">
+    <option value="M0">M0 — Terdekat dahulu</option>
+    <option value="M1">M1 — Prioritas stok</option>
+    <option value="M2">M2 — MILP HFVRPTW free-flow</option>
+    <option value="M3" selected>M3 — MILP + traffic scenario</option>
+  </select>
+  <div class="sub">M0/M1 adalah heuristik pembanding. M2/M3 menggunakan Pyomo + HiGHS.</div>
+  <label>Jumlah SPBU dari CSV</label><input id="n" type="number" min="1" max="30" value="10">
+  <label>Seed eksperimen</label><input id="seed" type="number" value="7">
+  <label>Skenario permintaan</label>
+  <select id="demand"><option value="0">Rendah (×0,80)</option><option value="1" selected>Sedang (×1,00)</option><option value="2">Tinggi (×1,25)</option></select>
+  <label>Skenario lalu lintas</label>
+  <select id="traffic"><option value="0">Normal (×1,00)</option><option value="1" selected>Padat (×1,35)</option><option value="2">Sangat padat (×1,80)</option></select>
+  <label>Jumlah mobil tangki</label>
+  <input id="fleet" type="number" min="1" max="100" value="4">
+  <label>Interval rolling horizon (jam)</label>
+  <select id="epoch"><option value="1">1 jam</option><option value="2" selected>2 jam</option><option value="4">4 jam</option></select>
+  <label>Batas waktu solver (detik)</label><input id="tl" type="number" min="1" max="120" value="10">
+  <div class="checkline"><input id="offline" type="checkbox"><span>Gunakan grid jalan SIMULATED (offline)</span></div>
+  <div class="btnrow"><button id="run">Jalankan simulasi</button><button class="secondary" id="compare">Bandingkan M0–M3</button></div>
+  <div id="status"></div>
+
+  <div class="section">
+    <h3>Input operasional SPBU</h3>
+    <div class="sub">Tabel muncul setelah simulasi. Masukkan nilai dalam kL; API mengonversi ke liter. Perubahan berlaku untuk run berikutnya.</div>
+    <div id="editTable" class="empty">Belum ada data. Jalankan simulasi untuk memuat SPBU.</div>
+  </div>
+  <div class="section">
+    <h3>Perbandingan metode</h3>
+    <div id="compareTable" class="empty">Klik “Bandingkan M0–M3” untuk menjalankan semua metode pada input yang sama.</div>
+  </div>
+  <div class="foot">© OpenStreetMap contributors jika jaringan OSM digunakan. Faktor lalu lintas default merupakan skenario sintetis, bukan data live.</div>
+</aside>
+
+<main>
+  <div id="map"></div>
+  <div class="toolbar">
+    <button id="play" class="secondary">▶ Putar</button>
+    <input id="timeSlider" type="range" min="0" max="0" step="1" value="0" disabled>
+    <div class="time-label"><span id="timeText">06:00</span><div class="small">Kecepatan: 2 menit waktu nyata / 1 jam simulasi</div></div>
+  </div>
+  <div class="panel">
+    <div class="kpis" id="kpis"><div class="empty">Jalankan simulasi untuk melihat KPI.</div></div>
+    <div class="cols">
+      <section class="card">
+        <h3>Kondisi stok SPBU pada waktu terpilih</h3>
+        <div class="tablewrap" id="stationTable"><div class="empty">Belum ada hasil.</div></div>
+      </section>
+      <section class="card">
+        <h3>Keputusan rolling horizon</h3>
+        <div id="epochPanel"><div class="empty">Pilih waktu pada slider setelah menjalankan simulasi.</div></div>
+        <h3 style="margin-top:14px">Rute dan pengiriman</h3>
+        <div id="tripPanel"><div class="empty">Belum ada rute.</div></div>
+      </section>
+    </div>
+    <div id="warnings"></div>
+  </div>
+</main>
+
+<script>
+const $ = (selector) => document.querySelector(selector);
+const map = L.map('map').setView([-6.9158,107.7036], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+const layer = L.layerGroup().addTo(map);
+const palette = ['#3549c8','#0e9384','#c17d11','#8b4db5','#d64b68','#2879bd'];
+let DATA = null, stationMarkers = [], truckMarkers = [], routeLines = [], timer = null, editsLoaded = false;
+const PLAYBACK_MS_PER_SIM_HOUR = 120000; // 2 menit nyata = 1 jam simulasi
+let playbackHour = 6, lastFrameTime = null, lastPanelIndex = -1;
+
+const legend = L.control({position:'bottomright'});
+legend.onAdd = () => {
+  const div = L.DomUtil.create('div','legend');
+  div.innerHTML = '<b>Prioritas persediaan</b><br><i style="background:#d9485f"></i>Kritis<br><i style="background:#d97706"></i>Tinggi<br><i style="background:#2563eb"></i>Sedang<br><i style="background:#16845b"></i>Aman<br><span class="small">Lingkaran = SPBU · garis = rute · truk = posisi simulasi</span>';
+  return div;
+};
+legend.addTo(map);
+
+const hourText = (h) => {
+  const minutes = Math.max(0, Math.round(h*60));
+  return `${String(Math.floor(minutes/60)).padStart(2,'0')}:${String(minutes%60).padStart(2,'0')}`;
+};
+const number = (v, digits=1) => Number(v || 0).toLocaleString('id-ID',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+const liters = (v) => `${number(v/1000,1)} kL`;
+const rupiah = (v) => `Rp ${number(v/1e6,2)} jt`;
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function getOverrides(){
+  const result = {};
+  document.querySelectorAll('#editTable input[data-i]').forEach(input => {
+    const i = input.dataset.i, key = input.dataset.key;
+    result[i] = result[i] || {};
+    const val = Number(input.value) * 1000;
+    if (Number.isFinite(val)) result[i][key] = val;
+  });
+  return result;
+}
+function requestBody(methodOverride=null){
+  const n = Number($('#n').value);
+  const fleet = Number($('#fleet').value);
+  const seed = Number($('#seed').value);
+  const timeLimit = Number($('#tl').value);
+
+  if (!Number.isInteger(n) || n < 1) throw new Error('Jumlah SPBU harus bilangan bulat minimal 1.');
+  if (!Number.isInteger(fleet) || fleet < 1) throw new Error('Jumlah mobil tangki harus bilangan bulat minimal 1.');
+  if (!Number.isFinite(seed)) throw new Error('Seed eksperimen harus berupa angka.');
+  if (!Number.isFinite(timeLimit) || timeLimit < 1) throw new Error('Batas waktu solver minimal 1 detik.');
+
+  return {
+    method: methodOverride || $('#method').value,
+    n, seed,
+    demand_level: Number($('#demand').value), traffic_level: Number($('#traffic').value),
+    fleet_count: fleet, epoch_hours: Number($('#epoch').value),
+    solver_time_limit: timeLimit, offline: $('#offline').checked,
+    overrides: getOverrides()
+  };
+}
+function priorityFor(stock, safety, demand, lead){
+  const risk = demand > 0 ? (stock-safety)/demand*24 : Infinity;
+  if(stock <= safety) return {label:'KRITIS',className:'critical',color:'#d9485f',risk};
+  if(risk <= lead) return {label:'TINGGI',className:'high',color:'#d97706',risk};
+  if(risk <= lead+2) return {label:'SEDANG',className:'medium',color:'#2563eb',risk};
+  return {label:'AMAN',className:'safe',color:'#16845b',risk};
+}
+
+function loadEditTable(){
+  $('#editTable').innerHTML = `<div class="tablewrap"><table><thead><tr><th>ID</th><th>Stok kL</th><th>Kapasitas kL</th><th>Demand kL/hari</th></tr></thead><tbody>${DATA.stations.map(s=>`
+    <tr><td title="${esc(s.name)}">${esc(s.station_id)}</td>
+    <td><input class="editinput" data-i="${s.index}" data-key="initial_stock_liters" value="${(s.initial_stock_liters/1000).toFixed(1)}"></td>
+    <td><input class="editinput" data-i="${s.index}" data-key="capacity_liters" value="${(s.capacity_liters/1000).toFixed(1)}"></td>
+    <td><input class="editinput" data-i="${s.index}" data-key="daily_demand_liters" value="${(s.daily_demand_liters/1000).toFixed(1)}"></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function makeStationIcon(s, currentStock){
+  const p = priorityFor(currentStock, s.safety_stock_liters, s.daily_demand_liters, s.effective_lead_hours_freeflow);
+  const radius = Math.max(9, Math.min(17, 8+s.capacity_liters/12000));
+  return L.divIcon({className:'', html:`<div style="width:${radius*2}px;height:${radius*2}px;border-radius:50%;background:${p.color};border:2px solid white;box-shadow:0 1px 5px #0005;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:10px">${s.index}</div>`, iconSize:[radius*2,radius*2], iconAnchor:[radius,radius]});
+}
+
+function renderMap(){
+  layer.clearLayers(); stationMarkers=[]; truckMarkers=[]; routeLines=[];
+  L.marker([DATA.terminal.lat,DATA.terminal.lon],{
+    icon:L.divIcon({className:'',html:'<div style="background:#172033;color:#fff;border-radius:7px;padding:5px 8px;font-weight:700;white-space:nowrap">⛽ Terminal</div>',iconAnchor:[40,12]})
+  }).addTo(layer).bindTooltip(esc(DATA.terminal.name));
+  DATA.trips.forEach((trip,index)=>{
+    const coords = trip.path.map(p=>[p[0],p[1]]);
+    if(coords.length>1){
+      const line=L.polyline(coords,{color:palette[trip.vehicle_index%palette.length],weight:4,opacity:.55});
+      line.bindTooltip(`${esc(trip.vehicle_id)} · ${number(trip.distance_km)} km · ${liters(trip.delivered_liters)}`);
+      line.addTo(layer);routeLines.push(line);
+    } else routeLines.push(null);
+    const truck=L.marker([DATA.terminal.lat,DATA.terminal.lon],{
+      icon:L.divIcon({className:'',html:`<div style="background:${palette[trip.vehicle_index%palette.length]};color:white;padding:3px 7px;border:2px solid white;border-radius:8px;font-size:10px;font-weight:800;white-space:nowrap">🚚 ${esc(trip.vehicle_id)}</div>`,iconAnchor:[32,12]})
+    });
+    truckMarkers.push(truck);
+  });
+  DATA.stations.forEach(s=>{
+    const marker=L.marker([s.lat,s.lon],{icon:makeStationIcon(s,s.initial_stock_liters)}).addTo(layer);
+    marker.bindTooltip(`<b>${esc(s.station_id)}</b><br>${esc(s.name)}<br>Status data: ${esc(s.data_status)}`);
+    stationMarkers.push(marker);
+  });
+  const bounds=L.latLngBounds([[DATA.terminal.lat,DATA.terminal.lon],...DATA.stations.map(s=>[s.lat,s.lon])]);
+  if(bounds.isValid()) map.fitBounds(bounds.pad(.18));
+}
+
+function positionAt(path, hour){
+  if(!path || path.length===0) return null;
+  if(hour<=path[0][2]) return [path[0][0],path[0][1]];
+  for(let i=1;i<path.length;i++){
+    const a=path[i-1],b=path[i];
+    if(hour<=b[2]){
+      const f=b[2]>a[2]?(hour-a[2])/(b[2]-a[2]):1;
+      return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];
+    }
+  }
+  const last=path[path.length-1];return [last[0],last[1]];
+}
+function currentEpoch(hour){
+  let selected=null;
+  DATA.epochs.forEach(e=>{if(e.time_hour<=hour+1e-7)selected=e;});
+  return selected;
+}
+function renderKpis(){
+  const k=DATA.kpi;
+  const items=[
+    ['Total biaya',rupiah(k.total_cost_rp)],['Jarak',`${number(k.distance_km)} km`],
+    ['Waktu mengemudi',`${number(k.driving_hours)} jam`],['Pengiriman',liters(k.delivered_liters)],
+    ['Service level',`${number(k.service_level*100,1)}%`],['Stockout',liters(k.stockout_liters)],['Sisa stok terminal',liters(k.terminal_stock_remaining_liters)]
+  ];
+  $('#kpis').innerHTML=items.map(x=>`<div class="kpi"><div class="v">${x[1]}</div><div class="k">${x[0]}</div></div>`).join('');
+}
+function renderWarnings(){
+  $('#warnings').innerHTML=(DATA.warnings||[]).map(w=>`<div class="warning">${esc(w)}</div>`).join('');
+}
+function renderStationTable(hourIndex){
+  const rows=DATA.stations.map((s,k)=>{
+    const stock=s.stock_history[Math.min(hourIndex,s.stock_history.length-1)] ?? s.initial_stock_liters;
+    const p=priorityFor(stock,s.safety_stock_liters,s.daily_demand_liters,s.effective_lead_hours_freeflow);
+    return `<tr><td>${esc(s.station_id)}</td><td>${liters(stock)}</td><td>${liters(s.safety_stock_liters)}</td><td>${liters(s.reorder_point_liters)}</td><td>${number(stock/s.daily_demand_liters,2)} hari</td><td>${number(p.risk,1)} jam</td><td><span class="tag ${p.className}">${p.label}</span></td><td>${esc(s.data_status)}</td></tr>`;
+  }).join('');
+  $('#stationTable').innerHTML=`<table><thead><tr><th>SPBU</th><th>Stok</th><th>Safety stock</th><th>ROP</th><th>DOI</th><th>Waktu ke SS</th><th>Prioritas</th><th>Sumber</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function renderEpoch(epoch){
+  if(!epoch){$('#epochPanel').innerHTML='<div class="empty">Belum ada siklus keputusan pada waktu ini.</div>';return;}
+  const candidates=epoch.candidates||[];
+  const candidateRows=candidates.map(c=>`<tr><td>${esc(c.station_id)}</td><td>${liters(c.stock_liters)}</td><td>${number(c.doi_days,2)}</td><td>${number(c.time_to_safety_hours,1)}</td><td>${number(c.effective_lead_hours,1)}</td><td><span class="tag ${c.priority==='KRITIS'?'critical':c.priority==='TINGGI'?'high':c.priority==='SEDANG'?'medium':'safe'}">${esc(c.priority)}</span></td><td>${liters(c.required_liters)}</td><td>${esc(c.decision_reason||'')}</td></tr>`).join('');
+  const routeList=(epoch.routes||[]).map(r=>`<div class="routeitem"><strong>${esc(r.vehicle_id)}</strong> · ${liters(r.delivered_liters)} · ${number(r.distance_km)} km<br>Terminal → ${r.station_ids.map(esc).join(' → ')} → Terminal<br><span class="small">Kembali ${hourText(r.end_hour)}</span></div>`).join('');
+  $('#epochPanel').innerHTML=`<div class="note"><b>Siklus ${hourText(epoch.time_hour)}</b> · faktor traffic ${number(epoch.traffic_factor,2)} · kendaraan idle ${(epoch.idle_vehicles||[]).map(v=>esc(v.vehicle_id)).join(', ')||'—'}<br>Solver: <b>${esc(epoch.solver_status||'—')}</b> · waktu ${number(epoch.solve_seconds||0,3)} detik ${epoch.fallback_used?'· fallback heuristik M1 dipakai':''}<br>${esc(epoch.message||epoch.solver_message||'')}</div>
+    <div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>SPBU</th><th>Stok</th><th>DOI</th><th>Waktu ke SS</th><th>Lead time</th><th>Prioritas</th><th>Perlu dikirim</th><th>Alasan</th></tr></thead><tbody>${candidateRows||'<tr><td colspan="8" class="small">Tidak ada SPBU yang melewati ambang pemesanan ulang.</td></tr>'}</tbody></table></div>`;
+  $('#tripPanel').innerHTML=routeList||'<div class="empty">Tidak ada mobil tangki diberangkatkan pada siklus ini.</div>';
+}
+function stopPlayback(){
+  if(timer){cancelAnimationFrame(timer);timer=null;}
+  lastFrameTime=null;
+  $('#play').textContent='▶ Putar';
+}
+function updateAtHour(hour){
+  if(!DATA)return;
+  const first=DATA.times[0] ?? 6;
+  const last=DATA.times[DATA.times.length-1] ?? 22;
+  hour=Math.max(first,Math.min(last,hour));
+  playbackHour=hour;
+  $('#timeText').textContent=hourText(hour);
+
+  // Temukan sampel stok terakhir yang waktunya tidak melewati jam animasi.
+  let index=0;
+  while(index+1<DATA.times.length && DATA.times[index+1]<=hour+1e-8) index++;
+  const sliderPosition = DATA.times.length>1 ? index : 0;
+  $('#timeSlider').value=sliderPosition;
+  if(index!==lastPanelIndex){
+    lastPanelIndex=index;
+    renderStationTable(index);
+    renderEpoch(currentEpoch(hour));
+    DATA.stations.forEach((station,k)=>{
+      const stock=station.stock_history[Math.min(index,station.stock_history.length-1)] ?? station.initial_stock_liters;
+      stationMarkers[k].setIcon(makeStationIcon(station,stock));
+    });
+  }
+
+  DATA.trips.forEach((trip,k)=>{
+    // Kendaraan tetap terlihat dari awal loading sampai benar-benar kembali ke terminal.
+    const active=hour>=trip.start_hour-1e-8 && hour<=trip.end_hour+1e-8;
+    const pos=positionAt(trip.path,hour);
+    if(active && pos){
+      truckMarkers[k].setLatLng(pos);
+      if(!layer.hasLayer(truckMarkers[k]))truckMarkers[k].addTo(layer);
+    } else if(layer.hasLayer(truckMarkers[k])) layer.removeLayer(truckMarkers[k]);
+    if(routeLines[k])routeLines[k].setStyle({opacity:active?.9:.25,weight:active?6:3});
+  });
+}
+function updateAtIndex(index){
+  if(!DATA)return;
+  stopPlayback();
+  const safeIndex=Math.max(0,Math.min(DATA.times.length-1,Number(index)||0));
+  updateAtHour(DATA.times[safeIndex] ?? 6);
+}
+function animateFrame(timestamp){
+  if(!DATA || timer===null)return;
+  if(lastFrameTime===null)lastFrameTime=timestamp;
+  const delta=Math.min(100,timestamp-lastFrameTime);
+  lastFrameTime=timestamp;
+  const first=DATA.times[0] ?? 6;
+  const last=DATA.times[DATA.times.length-1] ?? 22;
+  const next=playbackHour + delta/PLAYBACK_MS_PER_SIM_HOUR;
+  if(next>=last){
+    updateAtHour(last);
+    stopPlayback();
+    return;
+  }
+  updateAtHour(next);
+  timer=requestAnimationFrame(animateFrame);
+}
+
+function showResult(data){
+  DATA=data;renderMap();renderKpis();renderWarnings();
+  $('#timeSlider').max=Math.max(0,data.times.length-1);$('#timeSlider').min=0;$('#timeSlider').step=1;$('#timeSlider').disabled=false;
+  $('#timeSlider').value=0;playbackHour=data.times[0] ?? 6;lastPanelIndex=-1;loadEditTable();updateAtHour(playbackHour);
+}
+
+function formatApiError(error, fallback='Terjadi kesalahan saat menghubungi server.'){
+  // FastAPI dapat mengirim detail berupa string, object, atau array.
+  const payload = error?.payload ?? error?.response?.data ?? error;
+  const detail = payload?.detail ?? payload?.message ?? payload?.error;
+
+  if (typeof detail === 'string' && detail.trim()) return detail;
+  if (Array.isArray(detail)) {
+    return detail.map(item => {
+      const loc = Array.isArray(item?.loc) ? item.loc.join(' → ') : '';
+      const msg = item?.msg || item?.message || JSON.stringify(item);
+      return loc ? `${loc}: ${msg}` : msg;
+    }).join('; ');
+  }
+  if (detail && typeof detail === 'object') {
+    return detail.message || detail.msg || JSON.stringify(detail);
+  }
+  if (typeof payload === 'string' && payload.trim()) return payload;
+  if (error?.message && error.message !== '[object Object]') return error.message;
+  try {
+    const serialized = JSON.stringify(payload);
+    if (serialized && serialized !== '{}') return serialized;
+  } catch (_) {}
+  return fallback;
+}
+
+async function callApi(endpoint, body){
+  let response;
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(body)
+    });
+  } catch (networkError) {
+    throw new Error(`Tidak dapat terhubung ke API (${endpoint}). Pastikan server FastAPI berjalan dan alamat aplikasi benar. Detail: ${formatApiError(networkError)}`);
+  }
+
+  const raw = await response.text();
+  let data = {};
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch (_) {
+      data = {detail: raw.slice(0, 1200)};
+    }
+  }
+
+  if (!response.ok) {
+    const message = formatApiError({payload: data}, `HTTP ${response.status} ${response.statusText}`);
+    throw new Error(`${message} (HTTP ${response.status})`);
+  }
+
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Respons API tidak berbentuk JSON object yang diharapkan.');
+  }
+  return data;
+}
+$('#run').addEventListener('click',async()=>{
+  const button=$('#run');button.disabled=true;$('#status').textContent='Menyiapkan jaringan, menghitung persediaan, dan menjalankan simulasi…';
+  try{
+    const body = requestBody();
+    const data=await callApi('/api/run',body);
+    showResult(data);$('#status').textContent=`Selesai · jaringan: ${data.network_source} · metode: ${data.method}`;
+  }catch(error){
+    console.error('Gagal menjalankan simulasi:', error);
+    $('#status').textContent=`Gagal: ${formatApiError(error)}`;
+  }
+  finally{button.disabled=false;}
+});
+$('#compare').addEventListener('click',async()=>{
+  const button=$('#compare');button.disabled=true;$('#status').textContent='Membandingkan empat metode; M2/M3 membutuhkan solver HiGHS…';
+  try{
+    const body = requestBody();
+    const data=await callApi('/api/compare',body);
+    const rows=Object.entries(data.comparison).map(([method,result])=>{const k=result.kpi;return `<tr><td>${method}</td><td>${rupiah(k.total_cost_rp)}</td><td>${number(k.distance_km)} km</td><td>${number(k.service_level*100,1)}%</td><td>${liters(k.stockout_liters)}</td><td>${result.solver_fallback_cycles}</td></tr>`}).join('');
+    $('#compareTable').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Metode</th><th>Biaya</th><th>Jarak</th><th>Service</th><th>Stockout</th><th>Fallback</th></tr></thead><tbody>${rows}</tbody></table></div><div class="small">Semua metode memakai instance data dan seed yang sama. Kolom fallback menunjukkan jumlah siklus MILP yang diganti heuristik karena solver tidak memberi rute yang dapat digunakan.</div>`;
+    $('#status').textContent=`Perbandingan selesai · jaringan: ${data.network_source}`;
+  }catch(error){
+    console.error('Gagal membandingkan metode:', error);
+    $('#status').textContent=`Gagal membandingkan: ${formatApiError(error)}`;
+  }
+  finally{button.disabled=false;}
+});
+$('#timeSlider').addEventListener('input',()=>updateAtIndex(Number($('#timeSlider').value)));
+$('#play').addEventListener('click',()=>{
+  if(timer!==null){stopPlayback();return;}
+  if(!DATA)return;
+  const last=DATA.times[DATA.times.length-1] ?? 22;
+  if(playbackHour>=last-1e-8) updateAtHour(DATA.times[0] ?? 6);
+  $('#play').textContent='❚❚ Jeda';
+  lastFrameTime=null;
+  timer=requestAnimationFrame(animateFrame);
+});
+window.addEventListener('beforeunload',stopPlayback);
+</script>
+</body>
+</html>

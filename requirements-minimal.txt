@@ -1,0 +1,8 @@
+# Untuk menjalankan M0/M1 + API + grid offline.
+# M2/M3 MILP memerlukan pyomo + highspy; jaringan OSM memerlukan osmnx.
+numpy>=1.24,<3
+pandas>=2.0,<3
+networkx>=3.0,<4
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.0,<3

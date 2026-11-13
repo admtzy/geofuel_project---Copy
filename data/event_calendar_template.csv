@@ -1,0 +1,5 @@
+event_id,event_name,start_date,end_date,demand_multiplier,notes,data_status
+NORMAL,Normal,2026-01-01,2026-12-31,1.00,Baseline,ASSUMPTION
+RAMADAN,Ramadan,2026-02-18,2026-03-19,1.12,Periode Ramadan; multiplier belum dikalibrasi,ASSUMPTION
+MUDIK,Peak mudik,2026-03-16,2026-03-19,1.25,Periode mudik; multiplier belum dikalibrasi,ASSUMPTION
+ARUS_BALIK,Peak arus balik,2026-03-24,2026-03-29,1.19,Periode arus balik; multiplier belum dikalibrasi,ASSUMPTION
